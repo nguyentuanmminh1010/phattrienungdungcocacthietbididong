@@ -11,7 +11,7 @@ $allImages = Get-ChildItem -Path $destDir -Filter "*.png"
 
 foreach ($img in $allImages) {
     $name = $img.Name.ToLower()
-    
+    # additionally, skip any images that don't match our expected categories
     # Skip standard UI banners/icons if they exist
     if ($name -match "main.png" -or $name -match "image.png" -or $name -match "image \(1\).png" -or $name -match "big banner" -or $name -match "small banner") {
         continue
