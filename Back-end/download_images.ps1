@@ -9,7 +9,6 @@ foreach ($img in $allImages) {
     if ($name -match "main.png" -or $name -match "image.png" -or $name -match "image \(1\).png" -or $name -match "big banner" -or $name -match "small banner") {
         continue
     }
-
     $url = "https://loremflickr.com/400/500/fashion?lock=$i"
     Write-Output "Downloading for $($img.Name)..."
     
