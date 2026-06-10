@@ -4,6 +4,7 @@ import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/auth_service.dart';
 import 'package:provider/provider.dart';
+// Ensure you have the following dependencies in your pubspec.yaml:
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
