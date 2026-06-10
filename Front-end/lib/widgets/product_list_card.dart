@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../screens/product_detail_screen.dart';
+import '../providers/favorite_provider.dart';
+import 'favorite_modal.dart';
 
 class ProductListCard extends StatelessWidget {
   final String id;
@@ -179,27 +182,41 @@ class ProductListCard extends StatelessWidget {
             ),
           // Favorite Button Overflowing
           Positioned(
-            bottom: -15,
+            bottom: -22,
             right: 0,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            child: Consumer<FavoriteProvider>(
+              builder: (context, favoriteProvider, child) {
+                final isFav = favoriteProvider.isFavorite(id);
+                return GestureDetector(
+                  onTap: () {
+                    if (isFav) {
+                      favoriteProvider.removeFavoriteByProductId(id);
+                    } else {
+                      FavoriteModal.show(context, id);
+                    }
+                  },
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? const Color(0xFFE12B20) : Colors.grey,
+                      size: 26,
+                    ),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.favorite_border,
-                color: Colors.grey,
-                size: 20,
-              ),
+                );
+              },
             ),
           ),
         ],

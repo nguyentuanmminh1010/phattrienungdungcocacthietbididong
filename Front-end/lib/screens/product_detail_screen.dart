@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '/config/api_config.dart';
 import '/services/auth_service.dart';
 import '../widgets/product_card.dart';
+import '../providers/favorite_provider.dart';
+import '../widgets/favorite_modal.dart';
 import 'rating_reviews_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -190,21 +192,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  Consumer<FavoriteProvider>(
+                    builder: (context, favoriteProvider, child) {
+                      final isFav = favoriteProvider.isFavorite(widget.productId);
+                      return GestureDetector(
+                        onTap: () {
+                          if (isFav) {
+                            favoriteProvider.removeFavoriteByProductId(widget.productId);
+                          } else {
+                            FavoriteModal.show(context, widget.productId);
+                          }
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            color: isFav ? const Color(0xFFE12B20) : Colors.grey,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: const Icon(Icons.favorite_border, color: Colors.grey),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -384,7 +403,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               offset: const Offset(0, -5),
               blurRadius: 10,
             ),

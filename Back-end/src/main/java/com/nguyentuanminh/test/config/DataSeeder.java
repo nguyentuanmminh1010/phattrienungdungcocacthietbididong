@@ -47,9 +47,10 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         try {
-            jdbcTemplate.execute("DROP TABLE IF EXISTS reviews CASCADE;");
-            System.out.println("====== ĐÃ XÓA BẢNG REVIEWS ĐỂ ĐƯA VỀ CHUẨN 34 BẢNG ======");
+            jdbcTemplate.execute("TRUNCATE TABLE favorites, product_attribute_values, product_categories, product_tags, reviews, attributes, attribute_values, products, categories, tags CASCADE;");
+            System.out.println("====== ĐÃ XÓA SẠCH DỮ LIỆU ĐỂ SEED LẠI ======");
         } catch (Exception e) {
+            System.out.println("Lỗi truncate: " + e.getMessage());
         }
 
         if (categoryRepository.count() == 0) {
@@ -75,12 +76,22 @@ public class DataSeeder implements CommandLineRunner {
                     .imageUrl("assets/images/image_3204f6279dde.png").build();
             Category mClothes = Category.builder().categoryName("Clothes").parent(men)
                     .imageUrl("assets/images/image_9ea348e44110.png").build();
-            categoryRepository.saveAll(List.of(mNew, mClothes));
+            Category mShoes = Category.builder().categoryName("Shoes").parent(men)
+                    .imageUrl("assets/images/image_bf7ffeffdaef.png").build();
+            Category mAccessories = Category.builder().categoryName("Accessories").parent(men)
+                    .imageUrl("assets/images/image_e8df0a37ba28.png").build();
+            categoryRepository.saveAll(List.of(mNew, mClothes, mShoes, mAccessories));
 
             // KIDS SUB-CATEGORIES
+            Category kNew = Category.builder().categoryName("New").parent(kids)
+                    .imageUrl("assets/images/image_e5052118244e.png").build();
             Category kClothes = Category.builder().categoryName("Clothes").parent(kids)
                     .imageUrl("assets/images/image_9aa1ba6915f8.png").build();
-            categoryRepository.saveAll(List.of(kClothes));
+            Category kShoes = Category.builder().categoryName("Shoes").parent(kids)
+                    .imageUrl("assets/images/image_bf7ffeffdaef.png").build();
+            Category kAccessories = Category.builder().categoryName("Accessories").parent(kids)
+                    .imageUrl("assets/images/image_e8df0a37ba28.png").build();
+            categoryRepository.saveAll(List.of(kNew, kClothes, kShoes, kAccessories));
 
             // WOMEN -> NEW -> SUB
             Category wNewTops = Category.builder().categoryName("Tops").parent(wNew).build();
@@ -101,6 +112,31 @@ public class DataSeeder implements CommandLineRunner {
             categoryRepository.saveAll(List.of(wNewTops, wNewShirts, wNewCardigans, wNewKnitwear, wNewBlazers,
                     wNewOuterwear, wNewPants, wNewJeans, wNewShorts, wNewSkirts, wNewDresses, wNewSneakers,
                     wNewBoots, wNewBags, wNewBelts));
+
+            // MEN -> NEW -> SUB
+            Category mNewTops = Category.builder().categoryName("Tops").parent(mNew).build();
+            Category mNewShirts = Category.builder().categoryName("Shirts & Blouses").parent(mNew).build();
+            Category mNewCardigans = Category.builder().categoryName("Cardigans & Sweaters").parent(mNew).build();
+            Category mNewKnitwear = Category.builder().categoryName("Knitwear").parent(mNew).build();
+            Category mNewBlazers = Category.builder().categoryName("Blazers").parent(mNew).build();
+            Category mNewOuterwear = Category.builder().categoryName("Outerwear").parent(mNew).build();
+            Category mNewPants = Category.builder().categoryName("Pants").parent(mNew).build();
+            Category mNewJeans = Category.builder().categoryName("Jeans").parent(mNew).build();
+            Category mNewShorts = Category.builder().categoryName("Shorts").parent(mNew).build();
+            Category mNewSneakers = Category.builder().categoryName("Sneakers").parent(mNew).build();
+            categoryRepository.saveAll(List.of(mNewTops, mNewShirts, mNewCardigans, mNewKnitwear, mNewBlazers,
+                    mNewOuterwear, mNewPants, mNewJeans, mNewShorts, mNewSneakers));
+
+            // KIDS -> NEW -> SUB
+            Category kNewTops = Category.builder().categoryName("Tops").parent(kNew).build();
+            Category kNewShirts = Category.builder().categoryName("Shirts & Blouses").parent(kNew).build();
+            Category kNewPants = Category.builder().categoryName("Pants").parent(kNew).build();
+            Category kNewJeans = Category.builder().categoryName("Jeans").parent(kNew).build();
+            Category kNewShorts = Category.builder().categoryName("Shorts").parent(kNew).build();
+            Category kNewSkirts = Category.builder().categoryName("Skirts").parent(kNew).build();
+            Category kNewDresses = Category.builder().categoryName("Dresses").parent(kNew).build();
+            Category kNewSneakers = Category.builder().categoryName("Sneakers").parent(kNew).build();
+            categoryRepository.saveAll(List.of(kNewTops, kNewShirts, kNewPants, kNewJeans, kNewShorts, kNewSkirts, kNewDresses, kNewSneakers));
 
             // WOMEN -> CLOTHES -> SUB
             Category wTops = Category.builder().categoryName("Tops").parent(wClothes).build();
@@ -123,6 +159,41 @@ public class DataSeeder implements CommandLineRunner {
             Category wBags = Category.builder().categoryName("Bags").parent(wAccessories).build();
             Category wBelts = Category.builder().categoryName("Belts").parent(wAccessories).build();
             categoryRepository.saveAll(List.of(wBags, wBelts));
+
+            // MEN -> CLOTHES -> SUB
+            Category mTops = Category.builder().categoryName("Tops").parent(mClothes).build();
+            Category mShirts = Category.builder().categoryName("Shirts & Blouses").parent(mClothes).build();
+            Category mPants = Category.builder().categoryName("Pants").parent(mClothes).build();
+            Category mJeans = Category.builder().categoryName("Jeans").parent(mClothes).build();
+            categoryRepository.saveAll(List.of(mTops, mShirts, mPants, mJeans));
+
+            // KIDS -> CLOTHES -> SUB
+            Category kTops = Category.builder().categoryName("Tops").parent(kClothes).build();
+            Category kShirts = Category.builder().categoryName("Shirts & Blouses").parent(kClothes).build();
+            Category kPants = Category.builder().categoryName("Pants").parent(kClothes).build();
+            Category kJeans = Category.builder().categoryName("Jeans").parent(kClothes).build();
+            categoryRepository.saveAll(List.of(kTops, kShirts, kPants, kJeans));
+
+            // MEN -> SHOES -> SUB
+            Category mSneakers = Category.builder().categoryName("Sneakers").parent(mShoes).build();
+            Category mBoots = Category.builder().categoryName("Boots").parent(mShoes).build();
+            categoryRepository.saveAll(List.of(mSneakers, mBoots));
+
+            // MEN -> ACCESSORIES -> SUB
+            Category mBags = Category.builder().categoryName("Bags").parent(mAccessories).build();
+            Category mBelts = Category.builder().categoryName("Belts").parent(mAccessories).build();
+            Category mWatches = Category.builder().categoryName("Watches").parent(mAccessories).build();
+            categoryRepository.saveAll(List.of(mBags, mBelts, mWatches));
+
+            // KIDS -> SHOES -> SUB
+            Category kKidsSneakers = Category.builder().categoryName("Sneakers").parent(kShoes).build();
+            Category kSandals = Category.builder().categoryName("Sandals").parent(kShoes).build();
+            categoryRepository.saveAll(List.of(kKidsSneakers, kSandals));
+
+            // KIDS -> ACCESSORIES -> SUB
+            Category kHats = Category.builder().categoryName("Hats").parent(kAccessories).build();
+            Category kKidsBags = Category.builder().categoryName("Bags").parent(kAccessories).build();
+            categoryRepository.saveAll(List.of(kHats, kKidsBags));
 
             // TAGS
             Tag newTag = tagRepository.save(Tag.builder().tagName("New").build());
@@ -341,6 +412,43 @@ public class DataSeeder implements CommandLineRunner {
             productTagRepository.save(ProductTag.builder().product(pDresses).tag(saleTag).build());
             productCategoryRepository.save(ProductCategory.builder().product(pDresses).category(wNewDresses).build());
 
+            // --- AUTO GENERATE MEN & KIDS PRODUCTS ---
+            Category[] mCategories = {mNewTops, mNewShirts, mNewCardigans, mNewKnitwear, mNewBlazers, mNewOuterwear, mNewPants, mNewJeans, mNewShorts, mNewSneakers, mTops, mShirts, mPants, mJeans, mSneakers, mBoots, mBags, mBelts, mWatches};
+            for (Category c : mCategories) {
+                for (int i = 1; i <= 2; i++) {
+                    Product p = Product.builder()
+                            .productName("Men " + c.getCategoryName() + " " + i)
+                            .brand("Zara")
+                            .salePrice(30.0 + i * 5)
+                            .rating(4.5)
+                            .ratingCount(10 + i * 2)
+                            .imageUrl("placeholder")
+                            .imageUrl2("placeholder")
+                            .imageUrl3("placeholder")
+                            .build();
+                    p = productRepository.save(p);
+                    productCategoryRepository.save(ProductCategory.builder().product(p).category(c).build());
+                }
+            }
+
+            Category[] kCategories = {kNewTops, kNewShirts, kNewPants, kNewJeans, kNewShorts, kNewSkirts, kNewDresses, kNewSneakers, kTops, kShirts, kPants, kJeans, kKidsSneakers, kSandals, kHats, kKidsBags};
+            for (Category c : kCategories) {
+                for (int i = 1; i <= 2; i++) {
+                    Product p = Product.builder()
+                            .productName("Kids " + c.getCategoryName() + " " + i)
+                            .brand("H&M")
+                            .salePrice(20.0 + i * 5)
+                            .rating(4.8)
+                            .ratingCount(20 + i * 5)
+                            .imageUrl("placeholder")
+                            .imageUrl2("placeholder")
+                            .imageUrl3("placeholder")
+                            .build();
+                    p = productRepository.save(p);
+                    productCategoryRepository.save(ProductCategory.builder().product(p).category(c).build());
+                }
+            }
+
             // STAFF ACCOUNTS
             if (staffAccountRepository.count() == 0) {
                 StaffAccount s1 = StaffAccount.builder().firstName("John").lastName("Doe").email("john@store.com")
@@ -363,27 +471,22 @@ public class DataSeeder implements CommandLineRunner {
         // Cập nhật lại ảnh do AI tạo nếu DB đã có sẵn
         List<Product> allProducts = productRepository.findAll();
         boolean changed = false;
+        
+        int urlIndex = 1;
         for (Product p : allProducts) {
-            if ("Running Sneakers".equals(p.getProductName())) {
-                p.setImageUrl("assets/images/image_d0a97d6ca0fc.png");
+            String img = "https://picsum.photos/seed/" + urlIndex + "/400/600";
+            if (!img.equals(p.getImageUrl())) {
+                p.setImageUrl(img);
+                p.setImageUrl2(img);
+                p.setImageUrl3(img);
                 changed = true;
             }
-            if ("Leather Ankle Boots".equals(p.getProductName())) {
-                p.setImageUrl("assets/images/image_66ffa8df5665.png");
-                changed = true;
-            }
-            if ("Elegant Handbag".equals(p.getProductName())) {
-                p.setImageUrl("assets/images/image_a3e08cf6b5a2.png");
-                changed = true;
-            }
-            if ("Classic Leather Belt".equals(p.getProductName())) {
-                p.setImageUrl("assets/images/image_a42b3ebeadb6.png");
-                changed = true;
-            }
+            urlIndex++;
         }
+        
         if (changed) {
             productRepository.saveAll(allProducts);
-            System.out.println("====== ĐÃ CẬP NHẬT ẢNH MỚI (AI GENERATED) CHO CÁC SẢN PHẨM BỊ LỖI ======");
+            System.out.println("====== ĐÃ CẬP NHẬT ẢNH MỚI (PICSUM) CHO TẤT CẢ SẢN PHẨM ======");
         }
 
         if (attributeRepository.count() == 0) {

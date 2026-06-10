@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'catalog_1_screen.dart';
+import 'home_screen.dart';
 
 class Categories2Screen extends StatelessWidget {
   final int categoryId;
@@ -114,6 +115,33 @@ class Categories2Screen extends StatelessWidget {
               },
             ),
           ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1, // Shop tab
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen(initialTab: 1)));
+          } else {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => HomeScreen(initialTab: index)),
+              (route) => false,
+            );
+          }
+        },
+        selectedItemColor: const Color(0xFFE12B20),
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), activeIcon: Icon(Icons.shopping_cart), label: 'Shop'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), activeIcon: Icon(Icons.shopping_bag), label: 'Bag'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite_outline), activeIcon: Icon(Icons.favorite), label: 'Favorites'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

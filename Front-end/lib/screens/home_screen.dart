@@ -9,9 +9,12 @@ import '/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'login_screen.dart';
 import 'shop_screen.dart';
+import 'favorite_screen.dart';
+import '../providers/favorite_provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialTab;
+  const HomeScreen({super.key, this.initialTab = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -26,8 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchProducts();
+      context.read<FavoriteProvider>().fetchFavorites();
     });
   }
 
@@ -318,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _buildHomeContent(),
       const ShopScreen(),
       const Center(child: Text('Bag Page', style: TextStyle(fontSize: 24))),
-      const Center(child: Text('Favorites Page', style: TextStyle(fontSize: 24))),
+      const FavoriteScreen(),
       _buildProfileContent(),
     ];
 

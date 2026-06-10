@@ -4,6 +4,7 @@ import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'providers/favorite_provider.dart';
 // Ensure you have the following dependencies in your pubspec.yaml:
 
 void main() async {
@@ -20,6 +21,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
       ],
       child: const MyApp(),
     ),
