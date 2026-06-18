@@ -5,6 +5,11 @@ import 'screens/home_screen.dart';
 import 'services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/favorite_provider.dart';
+import 'providers/cart_provider.dart';
+import 'providers/address_provider.dart';
+import 'providers/payment_provider.dart';
+import 'providers/order_provider.dart';
+import 'providers/review_provider.dart';
 // Ensure you have the following dependencies in your pubspec.yaml:
 
 void main() async {
@@ -22,6 +27,11 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => AddressProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
       ],
       child: const MyApp(),
     ),

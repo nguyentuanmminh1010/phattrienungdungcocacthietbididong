@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../screens/product_detail_screen.dart';
 import '../providers/favorite_provider.dart';
 import 'favorite_modal.dart';
+import 'add_to_cart_modal.dart';
 
 class ProductCard extends StatelessWidget {
   final String id;
@@ -140,6 +141,35 @@ class ProductCard extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+              ),
+              Positioned(
+                bottom: -22,
+                right: 50,
+                child: GestureDetector(
+                  onTap: () {
+                    AddToCartModal.show(context, id);
+                  },
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE12B20),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.add_shopping_cart,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
                 ),
               ),
             ],

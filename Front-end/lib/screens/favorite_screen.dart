@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/favorite_provider.dart';
 import '../widgets/favorite_list_card.dart';
 import '../widgets/favorite_grid_card.dart';
+import '../widgets/sort_bottom_sheet.dart';
+import 'filter_screen.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
@@ -14,6 +16,55 @@ class FavoriteScreen extends StatefulWidget {
 class _FavoriteScreenState extends State<FavoriteScreen> {
   bool _isGridView = false;
   final List<String> _tags = ["Summer", "T-Shirts", "Shirts", "Pants"];
+
+  String _currentSort = 'Popular';
+  RangeValues _priceRange = const RangeValues(0, 500);
+  List<String> _selectedColors = [];
+  List<String> _selectedSizes = [];
+  String? _selectedCategory;
+  List<String> _selectedBrands = [];
+
+  List<dynamic> _getFilteredFavorites(List<dynamic> favorites) {
+    List<dynamic> filtered = favorites.where((p) {
+      final price = (p['salePrice'] ?? 0).toDouble();
+      if (price < _priceRange.start || price > _priceRange.end) return false;
+
+      if (_selectedBrands.isNotEmpty) {
+        final brand = p['brand']?.toString() ?? '';
+        if (!_selectedBrands.contains(brand)) return false;
+      }
+
+      if (_selectedSizes.isNotEmpty) {
+        final sizes = (p['availableSizes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+        if (!sizes.any((s) => _selectedSizes.contains(s))) return false;
+      }
+
+      if (_selectedColors.isNotEmpty) {
+        final colors = (p['availableColors'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+        if (!colors.any((c) => _selectedColors.contains(c))) return false;
+      }
+      return true;
+    }).toList();
+
+    filtered.sort((a, b) {
+      switch (_currentSort) {
+        case 'Price: lowest to high':
+          return ((a['salePrice'] ?? 0) as num).compareTo((b['salePrice'] ?? 0) as num);
+        case 'Price: highest to low':
+          return ((b['salePrice'] ?? 0) as num).compareTo((a['salePrice'] ?? 0) as num);
+        case 'Customer review':
+          return ((b['rating'] ?? 0) as num).compareTo((a['rating'] ?? 0) as num);
+        case 'Newest':
+          final aNew = (a['isNewBadge'] == true) ? 1 : 0;
+          final bNew = (b['isNewBadge'] == true) ? 1 : 0;
+          return bNew.compareTo(aNew);
+        case 'Popular':
+        default:
+          return ((b['ratingCount'] ?? 0) as num).compareTo((a['ratingCount'] ?? 0) as num);
+      }
+    });
+    return filtered;
+  }
 
   @override
   void initState() {
@@ -41,6 +92,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       body: Consumer<FavoriteProvider>(
         builder: (context, favoriteProvider, child) {
           final favorites = favoriteProvider.favorites;
+          final filteredFavorites = _getFilteredFavorites(favorites);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +140,30 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
-                      onTap: () {},
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FilterScreen(
+                              initialPriceRange: _priceRange,
+                              initialColors: _selectedColors,
+                              initialSizes: _selectedSizes,
+                              initialCategory: _selectedCategory,
+                              initialBrands: _selectedBrands,
+                            ),
+                          ),
+                        );
+                        if (result != null) {
+                          final filters = result as Map<String, dynamic>;
+                          setState(() {
+                            _priceRange = filters['priceRange'];
+                            _selectedColors = filters['colors'];
+                            _selectedSizes = filters['sizes'];
+                            _selectedCategory = filters['category'];
+                            _selectedBrands = filters['brands'];
+                          });
+                        }
+                      },
                       child: Row(
                         children: const [
                           Icon(Icons.filter_list, size: 20),
@@ -98,12 +173,19 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                       ),
                     ),
                     InkWell(
-                      onTap: () {},
+                      onTap: () async {
+                        final newSort = await SortBottomSheet.show(context, _currentSort);
+                        if (newSort != null) {
+                          setState(() {
+                            _currentSort = newSort;
+                          });
+                        }
+                      },
                       child: Row(
-                        children: const [
-                          Icon(Icons.swap_vert, size: 20),
-                          SizedBox(width: 8),
-                          Text('Price: lowest to high', style: TextStyle(fontSize: 14)),
+                        children: [
+                          const Icon(Icons.swap_vert, size: 20),
+                          const SizedBox(width: 8),
+                          Text(_currentSort, style: const TextStyle(fontSize: 14)),
                         ],
                       ),
                     ),
@@ -126,8 +208,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               Expanded(
                 child: favoriteProvider.isLoading
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFFE12B20)))
-                    : favorites.isEmpty
-                        ? const Center(child: Text("You haven't added any favorites yet.", style: TextStyle(color: Colors.grey)))
+                    : filteredFavorites.isEmpty
+                        ? const Center(child: Text("You haven't added any favorites yet or none match filters.", style: TextStyle(color: Colors.grey)))
                         : _isGridView
                             ? GridView.builder(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -137,9 +219,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                   crossAxisSpacing: 16,
                                   mainAxisSpacing: 24,
                                 ),
-                                itemCount: favorites.length,
+                                itemCount: filteredFavorites.length,
                                 itemBuilder: (context, index) {
-                                  final f = favorites[index];
+                                  final f = filteredFavorites[index];
                                   return FavoriteGridCard(
                                     favoriteId: f['id'],
                                     productId: f['productId'],
@@ -160,9 +242,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                               )
                             : ListView.builder(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                itemCount: favorites.length,
+                                itemCount: filteredFavorites.length,
                                 itemBuilder: (context, index) {
-                                  final f = favorites[index];
+                                  final f = filteredFavorites[index];
                                   return FavoriteListCard(
                                     favoriteId: f['id'],
                                     productId: f['productId'],

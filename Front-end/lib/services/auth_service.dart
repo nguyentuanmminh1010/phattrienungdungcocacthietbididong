@@ -12,6 +12,36 @@ class AuthService extends ChangeNotifier {
   bool get isAuthenticated => _token != null;
   bool get isLoading => _isLoading;
 
+  String? get userName {
+    if (_token == null) return null;
+    try {
+      final parts = _token!.split('.');
+      if (parts.length != 3) return null;
+      var payload = parts[1];
+      var normalized = base64Url.normalize(payload);
+      var resp = utf8.decode(base64Url.decode(normalized));
+      final data = jsonDecode(resp);
+      return data['name'];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String? get userEmail {
+    if (_token == null) return null;
+    try {
+      final parts = _token!.split('.');
+      if (parts.length != 3) return null;
+      var payload = parts[1];
+      var normalized = base64Url.normalize(payload);
+      var resp = utf8.decode(base64Url.decode(normalized));
+      final data = jsonDecode(resp);
+      return data['email'] ?? data['sub'];
+    } catch (e) {
+      return null;
+    }
+  }
+
   AuthService() {
     _loadToken();
   }

@@ -6,6 +6,8 @@ import '/config/api_config.dart';
 import '/services/auth_service.dart';
 import '../widgets/product_card.dart';
 import '../widgets/product_list_card.dart';
+import '../widgets/sort_bottom_sheet.dart';
+import 'filter_screen.dart';
 import 'home_screen.dart';
 
 class Catalog1Screen extends StatefulWidget {
@@ -26,6 +28,13 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
   List<dynamic> _products = [];
   bool _isLoading = true;
   bool _isGridView = false; // By default list view according to Catalog 1
+
+  String _currentSort = 'Popular';
+  RangeValues _priceRange = const RangeValues(0, 500);
+  List<String> _selectedColors = [];
+  List<String> _selectedSizes = [];
+  String? _selectedCategory;
+  List<String> _selectedBrands = [];
 
   // Placeholder tags for the top scrollable row matching the design
   final List<String> _tags = ["T-shirts", "Crop tops", "Blouses", "Sleeveless", "Shirts"];
@@ -58,6 +67,53 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  List<dynamic> get _filteredProducts {
+    List<dynamic> filtered = _products.where((p) {
+      final price = (p['salePrice'] ?? 0).toDouble();
+      if (price < _priceRange.start || price > _priceRange.end) return false;
+
+      if (_selectedBrands.isNotEmpty) {
+        final brand = p['brand']?.toString() ?? '';
+        if (!_selectedBrands.contains(brand)) return false;
+      }
+
+      if (_selectedSizes.isNotEmpty) {
+        final sizes = (p['sizes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+        if (!sizes.any((s) => _selectedSizes.contains(s))) return false;
+      }
+
+      if (_selectedColors.isNotEmpty) {
+        final colors = (p['colors'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+        if (!colors.any((c) => _selectedColors.contains(c))) return false;
+      }
+
+      // Note: category filter might require mapping string to ID or comparing tags,
+      // but for now we skip exact category string matching unless we have category names in the response.
+
+      return true;
+    }).toList();
+
+    filtered.sort((a, b) {
+      switch (_currentSort) {
+        case 'Price: lowest to high':
+          return ((a['salePrice'] ?? 0) as num).compareTo((b['salePrice'] ?? 0) as num);
+        case 'Price: highest to low':
+          return ((b['salePrice'] ?? 0) as num).compareTo((a['salePrice'] ?? 0) as num);
+        case 'Customer review':
+          return ((b['rating'] ?? 0) as num).compareTo((a['rating'] ?? 0) as num);
+        case 'Newest':
+          final aNew = (a['isNewBadge'] == true) ? 1 : 0;
+          final bNew = (b['isNewBadge'] == true) ? 1 : 0;
+          return bNew.compareTo(aNew);
+        case 'Popular':
+        default:
+          return ((b['ratingCount'] ?? 0) as num).compareTo((a['ratingCount'] ?? 0) as num);
+      }
+    });
+
+    return filtered;
   }
 
   @override
@@ -130,7 +186,30 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 InkWell(
-                  onTap: () {},
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FilterScreen(
+                          initialPriceRange: _priceRange,
+                          initialColors: _selectedColors,
+                          initialSizes: _selectedSizes,
+                          initialCategory: _selectedCategory,
+                          initialBrands: _selectedBrands,
+                        ),
+                      ),
+                    );
+                    if (result != null) {
+                      final filters = result as Map<String, dynamic>;
+                      setState(() {
+                        _priceRange = filters['priceRange'];
+                        _selectedColors = filters['colors'];
+                        _selectedSizes = filters['sizes'];
+                        _selectedCategory = filters['category'];
+                        _selectedBrands = filters['brands'];
+                      });
+                    }
+                  },
                   child: Row(
                     children: const [
                       Icon(Icons.filter_list, size: 20),
@@ -140,12 +219,19 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
                   ),
                 ),
                 InkWell(
-                  onTap: () {},
+                  onTap: () async {
+                    final newSort = await SortBottomSheet.show(context, _currentSort);
+                    if (newSort != null) {
+                      setState(() {
+                        _currentSort = newSort;
+                      });
+                    }
+                  },
                   child: Row(
-                    children: const [
-                      Icon(Icons.swap_vert, size: 20),
-                      SizedBox(width: 8),
-                      Text('Price: lowest to high', style: TextStyle(fontSize: 14)),
+                    children: [
+                      const Icon(Icons.swap_vert, size: 20),
+                      const SizedBox(width: 8),
+                      Text(_currentSort, style: const TextStyle(fontSize: 14)),
                     ],
                   ),
                 ),
@@ -165,22 +251,22 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
           const SizedBox(height: 8),
           // Product List / Grid
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _products.isEmpty
-                    ? const Center(child: Text("Không có sản phẩm nào"))
-                    : _isGridView
-                        ? GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.55,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
-                            itemCount: _products.length,
-                            itemBuilder: (context, index) {
-                              final p = _products[index];
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredProducts.isEmpty
+                      ? const Center(child: Text("Không tìm thấy sản phẩm nào"))
+                      : _isGridView
+                          ? GridView.builder(
+                              padding: const EdgeInsets.all(16),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.6, // Adjusted slightly
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                              itemCount: _filteredProducts.length,
+                              itemBuilder: (context, index) {
+                                final p = _filteredProducts[index];
                               return ProductCard(
                                 id: p['id'] ?? '',
                                 imageUrl: p['imageUrl'] ?? '',
@@ -196,10 +282,10 @@ class _Catalog1ScreenState extends State<Catalog1Screen> {
                             },
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            itemCount: _products.length,
-                            itemBuilder: (context, index) {
-                              final p = _products[index];
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _filteredProducts.length,
+                              itemBuilder: (context, index) {
+                                final p = _filteredProducts[index];
                               return ProductListCard(
                                 id: p['id'] ?? '',
                                 imageUrl: p['imageUrl'] ?? '',

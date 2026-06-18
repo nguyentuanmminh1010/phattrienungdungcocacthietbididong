@@ -6,6 +6,7 @@ import '/config/api_config.dart';
 import '/services/auth_service.dart';
 import '../widgets/product_card.dart';
 import '../providers/favorite_provider.dart';
+import '../providers/cart_provider.dart';
 import '../widgets/favorite_modal.dart';
 import 'rating_reviews_screen.dart';
 
@@ -414,7 +415,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             height: 48,
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                if (selectedSize == null || selectedColor == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please select size and color first')),
+                  );
+                  return;
+                }
+                try {
+                  await context.read<CartProvider>().addToCart(widget.productId, 1, selectedSize!, selectedColor!);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Added to Cart successfully!')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add to cart: $e')),
+                    );
+                  }
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFDB3022),
                 shape: RoundedRectangleBorder(

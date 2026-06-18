@@ -11,6 +11,8 @@ import 'login_screen.dart';
 import 'shop_screen.dart';
 import 'favorite_screen.dart';
 import '../providers/favorite_provider.dart';
+import 'bag_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialTab;
@@ -289,42 +291,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProfileContent() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, size: 50, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
-          const Text('My Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => _handleLogout(context),
-            icon: const Icon(Icons.logout, color: Colors.white),
-            label: const Text('Log out', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE12B20),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       _buildHomeContent(),
       const ShopScreen(),
-      const Center(child: Text('Bag Page', style: TextStyle(fontSize: 24))),
+      const BagScreen(),
       const FavoriteScreen(),
-      _buildProfileContent(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
