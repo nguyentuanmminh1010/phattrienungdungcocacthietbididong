@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface ProductAttributeValueRepository extends JpaRepository<ProductAttributeValue, UUID> {
     List<ProductAttributeValue> findByProductId(UUID productId);
+    List<ProductAttributeValue> findByProductIdIn(List<UUID> productIds);
 }

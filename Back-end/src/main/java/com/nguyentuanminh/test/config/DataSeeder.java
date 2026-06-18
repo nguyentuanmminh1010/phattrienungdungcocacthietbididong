@@ -20,6 +20,8 @@ import com.nguyentuanminh.test.repository.ProductCategoryRepository;
 import com.nguyentuanminh.test.entity.ProductTag;
 import com.nguyentuanminh.test.entity.ProductCategory;
 import com.nguyentuanminh.test.repository.ProductAttributeValueRepository;
+import com.nguyentuanminh.test.entity.Coupon;
+import com.nguyentuanminh.test.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -42,15 +44,24 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductTagRepository productTagRepository;
     private final ProductCategoryRepository productCategoryRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final CouponRepository couponRepository;
     private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) throws Exception {
-        try {
-            jdbcTemplate.execute("TRUNCATE TABLE favorites, product_attribute_values, product_categories, product_tags, reviews, attributes, attribute_values, products, categories, tags CASCADE;");
-            System.out.println("====== ĐÃ XÓA SẠCH DỮ LIỆU ĐỂ SEED LẠI ======");
-        } catch (Exception e) {
-            System.out.println("Lỗi truncate: " + e.getMessage());
+        // Bỏ việc tự động TRUNCATE để không làm thay đổi UUID của product mỗi khi restart server.
+        // Chỉ thêm dữ liệu nếu chưa có.
+        if (productRepository.count() > 0) {
+            System.out.println("====== DỮ LIỆU ĐÃ CÓ SẴN, BỎ QUA SEED ======");
+            return;
+        }
+
+        if (couponRepository.count() == 0) {
+            couponRepository.saveAll(List.of(
+                    Coupon.builder().code("mypromocode2020").title("Personal offer").discountPercentage(10).daysRemaining(6).build(),
+                    Coupon.builder().code("summer2020").title("Summer Sale").discountPercentage(15).daysRemaining(23).build(),
+                    Coupon.builder().code("welcome10").title("Welcome Bonus").discountPercentage(10).daysRemaining(30).build()
+            ));
         }
 
         if (categoryRepository.count() == 0) {

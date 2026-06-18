@@ -8,6 +8,8 @@ import com.nguyentuanminh.test.entity.User;
 import com.nguyentuanminh.test.repository.FavoriteRepository;
 import com.nguyentuanminh.test.repository.ProductRepository;
 import com.nguyentuanminh.test.repository.UserRepository;
+import com.nguyentuanminh.test.repository.ProductAttributeValueRepository;
+import com.nguyentuanminh.test.entity.ProductAttributeValue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +29,7 @@ public class FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     public FavoriteResponse addFavorite(FavoriteRequest request, String email) {
         User user = userRepository.findByEmail(email)
@@ -49,10 +56,34 @@ public class FavoriteService {
     }
 
     public List<FavoriteResponse> getFavoritesByEmail(String email) {
-        return favoriteRepository.findByUserEmailOrderByCreatedAtDesc(email)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        List<Favorite> favorites = favoriteRepository.findByUserEmailOrderByCreatedAtDesc(email);
+        if (favorites.isEmpty()) return new ArrayList<>();
+
+        List<UUID> productIds = favorites.stream().map(f -> f.getProduct().getId()).toList();
+        List<ProductAttributeValue> pavs = productAttributeValueRepository.findByProductIdIn(productIds);
+        Map<UUID, List<ProductAttributeValue>> pavMap = new HashMap<>();
+        for (ProductAttributeValue pav : pavs) {
+            pavMap.computeIfAbsent(pav.getProduct().getId(), k -> new ArrayList<>()).add(pav);
+        }
+
+        return favorites.stream().map(f -> {
+            FavoriteResponse resp = mapToResponse(f);
+            List<ProductAttributeValue> pPavs = pavMap.getOrDefault(f.getProduct().getId(), new ArrayList<>());
+            List<String> sizes = new ArrayList<>();
+            List<String> colors = new ArrayList<>();
+            for (ProductAttributeValue pav : pPavs) {
+                String attrName = pav.getAttributeValue().getAttribute().getAttributeName();
+                String attrVal = pav.getAttributeValue().getValue();
+                if ("Size".equalsIgnoreCase(attrName)) {
+                    sizes.add(attrVal);
+                } else if ("Color".equalsIgnoreCase(attrName)) {
+                    colors.add(attrVal);
+                }
+            }
+            resp.setAvailableSizes(sizes);
+            resp.setAvailableColors(colors);
+            return resp;
+        }).collect(Collectors.toList());
     }
 
     public void removeFavorite(Long favoriteId) {
@@ -72,6 +103,9 @@ public class FavoriteService {
                 .imageUrl(favorite.getProduct().getImageUrl())
                 .salePrice(favorite.getProduct().getSalePrice())
                 .brand(favorite.getProduct().getBrand())
+                .rating(favorite.getProduct().getRating())
+                .ratingCount(favorite.getProduct().getRatingCount())
+                .isNewBadge(favorite.getProduct().getIsNewBadge())
                 .size(favorite.getSize())
                 .build();
     }

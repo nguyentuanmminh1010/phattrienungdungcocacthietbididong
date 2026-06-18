@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -65,4 +66,10 @@ public class Product {
     @ToString.Exclude
     @Builder.Default
     private Set<ProductCategory> productCategories = new HashSet<>();
+
+    @Transient
+    private List<String> sizes;
+
+    @Transient
+    private List<String> colors;
 }

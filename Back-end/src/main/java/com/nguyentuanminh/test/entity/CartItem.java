@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "card_items")
+@Table(name = "cart_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,4 +28,11 @@ public class CartItem {
     private Product product;
 
     private Integer quantity;
+
+    private String color;
+
+    private String size;
+
+    @Column(name = "price_at_addition")
+    private Double priceAtAddition;
 }

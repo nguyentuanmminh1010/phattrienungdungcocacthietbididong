@@ -57,8 +57,8 @@ public class SecurityConfig {
                                                                                                                  // được
                                                                                                                  // bình
                                                                                                                  // luận
-                        .requestMatchers("/", "/*.html", "/*.css", "/*.js", "/favicon.ico", "/images/**", "/uploads/**")
-                        .permitAll() // Mở khóa các file tĩnh và thư mục chứa ảnh upload
+                        .requestMatchers("/", "/*.html", "/*.css", "/*.js", "/favicon.ico", "/images/**", "/uploads/**", "/error")
+                        .permitAll() // Mở khóa các file tĩnh, thư mục chứa ảnh upload, và trang báo lỗi
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

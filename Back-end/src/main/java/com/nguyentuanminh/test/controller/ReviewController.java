@@ -30,6 +30,19 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByProductId(productId));
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserReviews() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return ResponseEntity.ok(reviewService.getUserReviews(user.getId()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/{productId}")
     public ResponseEntity<?> addReview(
             @PathVariable UUID productId,

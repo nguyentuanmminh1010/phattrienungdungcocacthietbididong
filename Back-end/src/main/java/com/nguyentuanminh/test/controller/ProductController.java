@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,13 +33,43 @@ public class ProductController {
     public ResponseEntity<List<Product>> getProducts(
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) Long categoryId) {
+        
+        List<Product> products;
         if (categoryId != null) {
-            return ResponseEntity.ok(productRepository.findByCategoriesId(categoryId));
+            products = productRepository.findByCategoriesId(categoryId);
+        } else if (tag != null && !tag.isEmpty()) {
+            products = productRepository.findByTagName(tag);
+        } else {
+            products = productRepository.findAll();
         }
-        if (tag != null && !tag.isEmpty()) {
-            return ResponseEntity.ok(productRepository.findByTagName(tag));
+
+        if (!products.isEmpty()) {
+            List<UUID> productIds = products.stream().map(Product::getId).toList();
+            List<ProductAttributeValue> pavs = productAttributeValueRepository.findByProductIdIn(productIds);
+            
+            Map<UUID, List<ProductAttributeValue>> pavMap = new HashMap<>();
+            for (ProductAttributeValue pav : pavs) {
+                pavMap.computeIfAbsent(pav.getProduct().getId(), k -> new ArrayList<>()).add(pav);
+            }
+            
+            for (Product p : products) {
+                List<ProductAttributeValue> pPavs = pavMap.getOrDefault(p.getId(), new ArrayList<>());
+                List<String> sizes = new ArrayList<>();
+                List<String> colors = new ArrayList<>();
+                for (ProductAttributeValue pav : pPavs) {
+                    String attrName = pav.getAttributeValue().getAttribute().getAttributeName();
+                    String attrVal = pav.getAttributeValue().getValue();
+                    if ("Size".equalsIgnoreCase(attrName)) {
+                        sizes.add(attrVal);
+                    } else if ("Color".equalsIgnoreCase(attrName)) {
+                        colors.add(attrVal);
+                    }
+                }
+                p.setSizes(sizes);
+                p.setColors(colors);
+            }
         }
-        return ResponseEntity.ok(productRepository.findAll());
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/debug/categories")

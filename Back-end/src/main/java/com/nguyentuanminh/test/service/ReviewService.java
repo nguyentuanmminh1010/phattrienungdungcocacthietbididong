@@ -65,6 +65,31 @@ public class ReviewService {
         }).collect(Collectors.toList());
     }
 
+    public List<com.nguyentuanminh.test.dto.UserReviewDto> getUserReviews(Long userId) {
+        List<Review> reviews = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
+
+        return reviews.stream().map(r -> {
+            com.nguyentuanminh.test.dto.UserReviewDto dto = new com.nguyentuanminh.test.dto.UserReviewDto();
+            dto.setId(r.getId());
+            dto.setProductId(r.getProduct().getId());
+            dto.setProductName(r.getProduct().getProductName());
+            dto.setProductImageUrl(r.getProduct().getImageUrl() != null && !r.getProduct().getImageUrl().isEmpty() 
+                ? (r.getProduct().getImageUrl().startsWith("http") ? r.getProduct().getImageUrl() : baseUrl + "/" + r.getProduct().getImageUrl()) 
+                : "https://via.placeholder.com/150");
+            dto.setRating(r.getRating());
+            dto.setComment(r.getComment());
+            dto.setDate(r.getCreatedAt().format(formatter));
+            
+            List<String> imageUrls = r.getImages().stream()
+                .map(img -> baseUrl + "/" + UPLOAD_DIR + img.getImageUrl())
+                .collect(Collectors.toList());
+            dto.setImages(imageUrls);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
     public void addReview(UUID productId, Long userId, Double rating, String comment, List<MultipartFile> files) throws IOException {
         Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
